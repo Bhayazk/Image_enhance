@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Remini Image Enhancer (Real API)</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center p-6">
+  <div class="bg-white shadow-lg rounded-2xl p-8 w-full max-w-2xl">
+    <h1 class="text-3xl font-bold mb-6 text-center">✨ Remini Image Enhancer</h1>
+    <input type="file" accept="image/*" id="imageInput" class="block mx-auto mb-4" />
+    <p id="status" class="text-center text-blue-600 font-semibold mb-4"></p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <h2 class="text-center font-medium">Original</h2>
+        <img id="originalImage" class="rounded shadow mx-auto mt-2" />
+      </div>
+      <div>
+        <h2 class="text-center font-medium">Enhanced</h2>
+        <img id="enhancedImage" class="rounded shadow mx-auto mt-2" />
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const imageInput = document.getElementById('imageInput');
+    const originalImage = document.getElementById('originalImage');
+    const enhancedImage = document.getElementById('enhancedImage');
+    const statusText = document.getElementById('status');
+
+    imageInput.addEventListener('change', async (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      statusText.textContent = '⏫ Uploading to 0x0.st...';
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const uploadResponse = await fetch('https://0x0.st', {
+          method: 'POST',
+          body: formData
+        });
+
+        const imageUrl = await uploadResponse.text();
+        if (!imageUrl.startsWith('http')) throw new Error("Upload failed");
+
+        originalImage.src = imageUrl;
+        statusText.textContent = '✨ Enhancing image with Remini...';
+
+        const apiUrl = `https://apis.davidcyriltech.my.id/remini?url=${encodeURIComponent(imageUrl.trim())}`;
+        const enhancedResponse = await fetch(apiUrl);
+        if (!enhancedResponse.ok) throw new Error("Remini API failed");
+
+        const blob = await enhancedResponse.blob();
+        const enhancedURL = URL.createObjectURL(blob);
+
+        enhancedImage.src = enhancedURL;
+        statusText.textContent = '✅ Enhancement complete!';
+      } catch (err) {
+        console.error(err);
+        statusText.textContent = `❌ Error: ${err.message}`;
+      }
+    });
+  </script>
+</body>
+</html>
