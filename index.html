@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -61,11 +60,10 @@
           class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-xl transition shadow-lg">
           Enhance Image
         </button>
-        <a id="downloadBtn"
-          class="hidden bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2 rounded-xl transition shadow-lg"
-          download="enhanced.jpg">
+        <button id="downloadBtn"
+          class="hidden bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2 rounded-xl transition shadow-lg">
           Download Image
-        </a>
+        </button>
       </div>
 
       <p id="status" class="text-center mt-4 text-blue-700 font-medium"></p>
@@ -130,14 +128,38 @@
         const enhancedUrl = URL.createObjectURL(blob);
 
         enhancedImage.src = enhancedUrl;
-        downloadBtn.href = enhancedUrl;
         downloadBtn.classList.remove("hidden");
+        downloadBtn.dataset.url = enhancedUrl; // Store the blob URL in data attribute
         statusText.textContent = "✅ Image enhanced successfully!";
       } catch (err) {
         console.error(err);
         statusText.textContent = `❌ Error: ${err.message}`;
       } finally {
         submitBtn.disabled = false;
+      }
+    });
+
+    downloadBtn.addEventListener('click', async () => {
+      const imageUrl = downloadBtn.dataset.url;
+      if (!imageUrl) {
+        statusText.textContent = "❗ No image available to download.";
+        return;
+      }
+
+      try {
+        const response = await fetch(imageUrl);
+        const blob = await response.blob();
+
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'enhanced.jpg';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } catch (err) {
+        statusText.textContent = `❌ Error downloading image: ${err.message}`;
       }
     });
   </script>
